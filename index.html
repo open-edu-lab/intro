@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>김가현 | AI 융합 교육</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0d0d0d;--paper:#f5f0e8;--accent:#c8400a;--accent2:#1a4d8a;--grid:#e0d9cc;--muted:#8a8070;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden;cursor:none;}
+  #cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s;mix-blend-mode:multiply;}
+  #cursor-ring{position:fixed;width:38px;height:38px;border:1.5px solid var(--accent2);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.55;transition:width .3s,height .3s,opacity .3s;}
+  body.hovering #cursor{width:22px;height:22px;}
+  body.hovering #cursor-ring{width:60px;height:60px;opacity:.3;}
+  #particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:2;}
+  .grid-bg{position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;z-index:0;opacity:.45;}
+  #progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:9999;width:0%;}
+  .hero{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;z-index:3;padding:60px;gap:40px;align-items:center;overflow:hidden;}
+  .parallax-layer{position:absolute;inset:0;pointer-events:none;will-change:transform;}
+  .plx-circle{position:absolute;border-radius:50%;opacity:.06;}
+  .plx-c1{width:500px;height:500px;background:var(--accent);top:-100px;right:-100px;}
+  .plx-c2{width:300px;height:300px;background:var(--accent2);bottom:-50px;left:20px;}
+  .plx-c3{width:180px;height:180px;background:var(--ink);top:40%;left:40%;}
+  .hero-left{position:relative;z-index:4;}
+  .hero-tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);border-left:2px solid var(--accent);padding-left:12px;margin-bottom:24px;opacity:0;animation:fadeUp .8s .2s forwards;}
+  .hero-name{font-family:'Noto Serif KR',serif;font-size:clamp(44px,5.5vw,84px);font-weight:700;line-height:1.05;letter-spacing:-.02em;opacity:0;animation:fadeUp .8s .4s forwards;}
+  .hero-name .acc{color:var(--accent);}
+  .hero-name .acc2{color:var(--accent2);}
+  .hero-subtitle{font-size:16px;color:var(--muted);margin-top:20px;line-height:1.9;font-weight:300;max-width:420px;opacity:0;animation:fadeUp .8s .6s forwards;}
+  .hero-subtitle strong{color:var(--ink);font-weight:600;}
+  .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px;opacity:0;animation:fadeUp .8s .8s forwards;}
+  .badge{font-family:'Space Mono',monospace;font-size:11px;padding:6px 14px;border:1.5px solid var(--ink);background:transparent;letter-spacing:.05em;cursor:default;transition:all .25s;position:relative;overflow:hidden;}
+  .badge::after{content:'';position:absolute;inset:0;background:var(--ink);transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:-1;}
+  .badge:hover::after{transform:translateY(0);}
+  .badge:hover{color:var(--paper);}
+  .badge.a{border-color:var(--accent);color:var(--accent);}
+  .badge.a::after{background:var(--accent);}
+  .badge.a:hover{color:var(--paper);}
+  .badge.b{border-color:var(--accent2);color:var(--accent2);}
+  .badge.b::after{background:var(--accent2);}
+  .badge.b:hover{color:var(--paper);}
+  .hero-right{position:relative;z-index:4;height:500px;opacity:0;animation:fadeIn 1.2s 1s forwards;}
+  .node-svg{width:100%;height:100%;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.75;}}
+  .center-pulse{animation:pulse 2.5s ease-in-out infinite;}
+  @keyframes orbit{from{transform:rotate(0deg) translateX(88px) rotate(0deg);}to{transform:rotate(360deg) translateX(88px) rotate(-360deg);}}
+  .orbit-dot{position:absolute;top:50%;left:50%;width:8px;height:8px;margin:-4px;background:var(--accent);border-radius:50%;animation:orbit 5s linear infinite;transform-origin:0 0;}
+  .orbit-dot2{position:absolute;top:50%;left:50%;width:5px;height:5px;margin:-2.5px;background:var(--accent2);border-radius:50%;animation:orbit 8s linear infinite reverse;transform-origin:0 0;}
+  .about-strip{background:var(--ink);color:var(--paper);padding:64px 60px;display:grid;grid-template-columns:1fr 2fr;gap:60px;align-items:start;z-index:3;position:relative;}
+  .about-title{font-family:'Noto Serif KR',serif;font-size:36px;font-weight:700;line-height:1.3;}
+  .about-title span{color:var(--accent);}
+  .about-body{font-size:16px;line-height:2.1;font-weight:300;color:#c8c0b0;}
+  .about-body strong{color:var(--paper);font-weight:500;}
+  section{position:relative;z-index:3;padding:80px 60px;}
+  .section-label{font-family:'Space Mono',monospace;font-size:14px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:48px;display:flex;align-items:center;gap:16px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--grid);max-width:200px;}
+  .interests{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--grid);border:1px solid var(--grid);}
+  .interest-card{background:var(--paper);padding:40px 36px;cursor:default;overflow:hidden;position:relative;}
+  .interest-card::before{content:'';position:absolute;inset:0;background:var(--ink);transform:scaleY(0);transform-origin:bottom;transition:transform .45s cubic-bezier(.4,0,.2,1);z-index:0;}
+  .interest-card:hover::before{transform:scaleY(1);}
+  .interest-card > *{position:relative;z-index:1;}
+  .card-num{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.15em;margin-bottom:24px;transition:color .3s;}
+  .card-title{font-family:'Noto Serif KR',serif;font-size:26px;font-weight:600;line-height:1.4;margin-bottom:12px;transition:color .3s;}
+  .card-accent{color:var(--accent);transition:color .3s;}
+  .card-desc{font-size:15px;line-height:1.85;color:var(--muted);transition:color .3s;}
+  .interest-card:hover .card-num,.interest-card:hover .card-title{color:var(--paper);}
+  .interest-card:hover .card-accent{color:#ff8055;}
+  .interest-card:hover .card-desc{color:#b0a898;}
+  .interest-card:hover .card-title{animation:glitch .4s steps(2) 1;}
+  @keyframes glitch{0%{text-shadow:2px 0 var(--accent),-2px 0 var(--accent2);}25%{text-shadow:-2px 0 var(--accent),2px 0 var(--accent2);}50%{text-shadow:2px 2px var(--accent),-2px -2px var(--accent2);}100%{text-shadow:none;}}
+  .dark-section{background:var(--ink);color:var(--paper);padding:64px 60px;z-index:3;position:relative;}
+  .dark-label{font-family:'Space Mono',monospace;font-size:14px;letter-spacing:.25em;color:#3a3830;text-transform:uppercase;margin-bottom:48px;display:flex;align-items:center;gap:16px;}
+  .dark-label::after{content:'';flex:1;height:1px;background:#2a2820;max-width:200px;}
+  .principle-row{display:flex;gap:0;}
+  .principle-item{flex:1;padding:48px 40px;border-right:1px solid #2a2820;position:relative;overflow:hidden;transition:background .4s;}
+  .principle-item:last-child{border-right:none;}
+  .principle-item:hover{background:#1a1812;}
+  .principle-item::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.4,0,.2,1);}
+  .principle-item:hover::after{transform:scaleX(1);}
+  .principle-icon{font-size:32px;margin-bottom:20px;display:block;}
+  .principle-heading{font-family:'Noto Serif KR',serif;font-size:22px;font-weight:600;margin-bottom:10px;}
+  .principle-text{font-size:16px;line-height:1.9;color:#8a8070;}
+  .manifesto{background:var(--accent);color:var(--paper);padding:80px 60px;z-index:3;position:relative;overflow:hidden;}
+  .manifesto::before{content:'"';font-family:'Noto Serif KR',serif;font-size:400px;position:absolute;right:40px;top:-80px;opacity:.07;line-height:1;}
+  .manifesto-text{font-family:'Noto Serif KR',serif;font-size:clamp(22px,3vw,38px);line-height:1.6;font-weight:400;max-width:800px;}
+  .manifesto-text em{font-style:italic;opacity:.85;}
+  .manifesto-author{margin-top:32px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.15em;opacity:.7;}
+  .timeline{display:grid;grid-template-columns:200px 1fr;gap:0;max-width:800px;}
+  .tl-year{font-family:'Space Mono',monospace;font-size:16px;color:var(--accent);padding-top:4px;font-weight:700;}
+  .tl-item{padding:0 0 36px 32px;border-left:1px solid var(--grid);position:relative;transition:border-color .3s;}
+  .tl-item::before{content:'';position:absolute;left:-5px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--accent2);transition:transform .3s,background .3s;}
+  .tl-item:hover::before{transform:scale(1.8);background:var(--accent);}
+  .tl-item:hover{border-color:var(--accent);}
+  .tl-title{font-weight:600;font-size:18px;margin-bottom:4px;}
+  .tl-desc{font-size:15px;color:var(--muted);line-height:1.7;}
+  .marquee-wrap{overflow:hidden;border-top:1px solid var(--grid);border-bottom:1px solid var(--grid);padding:16px 0;background:var(--ink);z-index:3;position:relative;}
+  .marquee-inner{display:flex;gap:48px;animation:marquee 22s linear infinite;white-space:nowrap;}
+  .marquee-item{font-family:'Space Mono',monospace;font-size:11px;color:var(--paper);letter-spacing:.15em;opacity:.45;flex-shrink:0;}
+  .marquee-item.hi{color:var(--accent);opacity:1;}
+  @keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .footer{padding:40px 60px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--grid);z-index:3;position:relative;}
+  .footer-left{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em;}
+  .footer-right{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--muted);}
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .red-bar{height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:3;position:relative;}
+  .ripple{position:absolute;border-radius:50%;border:1.5px solid var(--accent);pointer-events:none;animation:rippleOut .6s ease-out forwards;z-index:10;}
+  @keyframes rippleOut{from{width:0;height:0;opacity:.8;transform:translate(-50%,-50%);}to{width:80px;height:80px;opacity:0;transform:translate(-50%,-50%);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @media(max-width:900px){
+    .hero{grid-template-columns:1fr;padding:40px 24px;}
+    .hero-right{display:none;}
+    .about-strip{grid-template-columns:1fr;padding:48px 24px;gap:32px;}
+    .interests{grid-template-columns:1fr;}
+    .principle-row{flex-direction:column;}
+    section,.dark-section,.manifesto{padding:60px 24px;}
+    .footer{padding:32px 24px;flex-direction:column;gap:12px;text-align:center;}
+    .timeline{grid-template-columns:100px 1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<div class="grid-bg"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="particle-canvas"></canvas>
+
+<section class="hero" id="hero">
+  <div class="parallax-layer" id="plx1"><div class="plx-circle plx-c1"></div></div>
+  <div class="parallax-layer" id="plx2"><div class="plx-circle plx-c2"></div></div>
+  <div class="parallax-layer" id="plx3"><div class="plx-circle plx-c3"></div></div>
+  <div class="hero-left">
+    <div class="hero-tag">AI 융합 교육 연구자 · 중학교 기술 교사</div>
+    <h1 class="hero-name">기술과 AI가<br><span class="acc">만나는</span><br><span class="acc2">교실</span>을<br>설계합니다</h1>
+    <p class="hero-subtitle">서울 여의도중학교 기술 교사이자<br>서울대학교 AI 융합교육 대학원생,<br><strong>김가현</strong>입니다.</p>
+
+  </div>
+  <div class="hero-right">
+    <div style="position:relative;width:100%;height:100%;">
+      <div class="orbit-dot"></div>
+      <div class="orbit-dot2"></div>
+      <svg class="node-svg" viewBox="0 0 480 500" fill="none" xmlns="http://www.w3.org/2000/svg" id="node-svg">
+        <defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <line x1="240" y1="250" x2="100" y2="120" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="240" y1="250" x2="380" y2="100" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="240" y1="250" x2="60" y2="300" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="240" y1="250" x2="420" y2="310" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="240" y1="250" x2="140" y2="420" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="240" y1="250" x2="340" y2="430" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <circle cx="240" cy="250" r="52" fill="#0d0d0d" class="center-pulse" filter="url(#glow)"/>
+        <circle cx="240" cy="250" r="48" fill="#0d0d0d" stroke="#c8400a" stroke-width="1.5"/>
+        <text x="240" y="245" text-anchor="middle" fill="#f5f0e8" font-family="Noto Serif KR" font-size="13" font-weight="700">AI 융합</text>
+        <text x="240" y="262" text-anchor="middle" fill="#c8400a" font-family="Noto Serif KR" font-size="11">교육 설계</text>
+        <g class="node-group"><circle cx="100" cy="120" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/><text x="100" y="116" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">발명</text><text x="100" y="131" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">교육</text></g>
+        <g class="node-group"><circle cx="380" cy="100" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/><text x="380" y="96" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">생성형</text><text x="380" y="111" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">AI 활용</text></g>
+        <g class="node-group"><circle cx="60" cy="300" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/><text x="60" y="296" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">게임·VR</text><text x="60" y="311" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="9">콘텐츠 제작</text></g>
+        <g class="node-group"><circle cx="420" cy="310" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/><text x="420" y="306" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">3D 모델링</text><text x="420" y="321" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="10">메이커 교육</text></g>
+        <g class="node-group"><circle cx="140" cy="420" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/><text x="140" y="416" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">데이터</text><text x="140" y="431" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">시각화</text></g>
+        <g class="node-group"><circle cx="340" cy="430" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/><text x="340" y="426" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">특허·지식</text><text x="340" y="441" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="10">재산권</text></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-inner">
+    <span class="marquee-item hi">AI 융합교육</span><span class="marquee-item">·</span><span class="marquee-item">발명 교육</span><span class="marquee-item">·</span><span class="marquee-item hi">생성형 AI</span><span class="marquee-item">·</span><span class="marquee-item">STEAM 설계</span><span class="marquee-item">·</span><span class="marquee-item">게임·VR 제작</span><span class="marquee-item">·</span><span class="marquee-item hi">3D 모델링</span><span class="marquee-item">·</span><span class="marquee-item">에듀테크</span><span class="marquee-item">·</span><span class="marquee-item">중학교 기술</span><span class="marquee-item">·</span>
+    <span class="marquee-item hi">AI 융합교육</span><span class="marquee-item">·</span><span class="marquee-item">발명 교육</span><span class="marquee-item">·</span><span class="marquee-item hi">생성형 AI</span><span class="marquee-item">·</span><span class="marquee-item">STEAM 설계</span><span class="marquee-item">·</span><span class="marquee-item">게임·VR 제작</span><span class="marquee-item">·</span><span class="marquee-item hi">3D 모델링</span><span class="marquee-item">·</span><span class="marquee-item">에듀테크</span><span class="marquee-item">·</span><span class="marquee-item">중학교 기술</span>
+  </div>
+</div>
+
+<div class="about-strip reveal">
+  <div><h2 class="about-title">현장에서의<br><span>고민</span></h2></div>
+  <div><p class="about-body">기술 교사로 일하면서 VR, AI, 피지컬 컴퓨팅 등 새로운 기술을 수업에 끌어들이는 것을 당연하게 여겨왔습니다. 아이들이 몰입하는 모습을 보며 보람을 느꼈지만, 어느 순간 스스로에게 물었습니다.<br><br><strong>이 수업이 실제로 효과가 있는가? 흥미로운 것은 분명한데, 그것이 학습으로 이어지고 있는가?</strong><br><br>새로운 기술을 반영한다는 것과 효과적인 수업 설계는 같은 말이 아닐 수 있다는 생각이 들었고, 그 질문을 붙들고 대학원에 진학했습니다. 좋은 수업을 만드는 것에서 멈추지 않고, <strong>왜 좋은 수업인지를 설명할 수 있는 연구자</strong>가 되고 싶습니다.</p></div>
+</div>
+
+<section>
+  <div class="section-label">관심 연구 영역</div>
+  <div class="interests">
+    <div class="interest-card reveal"><div class="card-num">01 / 발명 교육</div><h3 class="card-title">AI 융합<br><span class="card-accent">발명교육 설계</span></h3><p class="card-desc">AI를 단순 보조 도구가 아닌 협업 파트너로 위치시킨 발명 교육 설계. 아이디어 발산, 선행 특허 검토, 차별점 도출 등 각 단계에서 AI의 역할을 어떻게 구조화할지 탐구합니다.</p></div>
+    <div class="interest-card reveal"><div class="card-num">02 / AI 리터러시</div><h3 class="card-title">비판적 수용<br><span class="card-accent">윤리적 활용</span></h3><p class="card-desc">AI 활용 방법론만큼 중요한 것이 비판적·윤리적 수용 태도입니다. AI 결과물 검토, 지식재산 측면의 경계 설정 등 기술 교과 맥락에 맞는 AI 리터러시 교육을 탐색합니다.</p></div>
+    <div class="interest-card reveal"><div class="card-num">03 / 교수학습모형</div><h3 class="card-title">AI 융합<br><span class="card-accent">수업 모형 개발</span></h3><p class="card-desc">현장의 실천이 연구로 정교화되지 않으면 개인의 경험으로 끝납니다. AI 융합 수업이 실제로 작동하는 방식을 이론적으로 설명하고, 현장에서 누구나 적용 가능한 모형으로 구체화하는 작업에 관심 있습니다.</p></div>
+    <div class="interest-card reveal"><div class="card-num">04 / 게임·VR</div><h3 class="card-title">게임·VR<br><span class="card-accent">콘텐츠 제작 수업</span></h3><p class="card-desc">학생이 직접 게임 또는 VR 콘텐츠를 기획·제작하는 수업. 스토리텔링, 공간 설계, 인터랙션 구현까지 창작자로서의 경험을 설계합니다.</p></div>
+    <div class="interest-card reveal"><div class="card-num">05 / 지식재산</div><h3 class="card-title">특허·저작권<br><span class="card-accent">IP 교육</span></h3><p class="card-desc">중학생 수준에서 이해할 수 있는 지식재산권 교육. 자신의 아이디어를 보호하고 다른 사람의 창작을 존중하는 시민 의식 함양.</p></div>
+    <div class="interest-card reveal"><div class="card-num">06 / 수업혁신</div><h3 class="card-title">2024 입상작<br><span class="card-accent">AI 발명 교수학습모형</span></h3><p class="card-desc">2024 수업혁신사례연구대회 3등급 입상. 기존 PBL 모형에 AI와 협업하는 단계를 설계·삽입해, 발명 프로세스 어느 지점에 AI가 개입할 때 학생의 사고가 확장되는지 탐색했습니다.</p></div>
+  </div>
+</section>
+
+<div class="red-bar"></div>
+<div class="dark-section">
+  <div class="dark-label">수업 설계 원칙</div>
+  <div class="principle-row">
+    <div class="principle-item reveal"><span class="principle-icon">🔍</span><h3 class="principle-heading">문제 발견 우선</h3><p class="principle-text">정답을 주는 수업보다<br>학생이 스스로 문제를<br>발견하는 수업을 설계합니다.</p></div>
+    <div class="principle-item reveal"><span class="principle-icon">🔗</span><h3 class="principle-heading">교과 간 연결</h3><p class="principle-text">기술·과학·수학·예술이<br>분리되지 않고 하나의<br>프로젝트에서 만납니다.</p></div>
+    <div class="principle-item reveal"><span class="principle-icon">🤖</span><h3 class="principle-heading">AI는 도구, 사람이 주체</h3><p class="principle-text">AI를 활용하되, 학생의<br>사고와 판단이 중심이 되는<br>수업 구조를 만듭니다.</p></div>
+    <div class="principle-item reveal"><span class="principle-icon">📐</span><h3 class="principle-heading">만들기로 증명</h3><p class="principle-text">배움의 결과는 산출물로<br>나타납니다. 프로토타입,<br>발표, 전시로 완성됩니다.</p></div>
+  </div>
+</div>
+
+<section>
+  <div class="section-label">타임라인</div>
+  <div class="timeline">
+    <div class="tl-year">2026~</div><div class="tl-item reveal"><div class="tl-title">서울 여의도중학교 기술 교사</div><div class="tl-desc">AI 융합 발명교육 수업 설계 및 운영</div></div>
+    <div class="tl-year">진행중</div><div class="tl-item reveal"><div class="tl-title">서울대학교 AI 융합교육 대학원 재학</div><div class="tl-desc">생성형 AI 기반 기술 교육 연구</div></div>
+    <div class="tl-year">2024</div><div class="tl-item reveal"><div class="tl-title">수업혁신사례연구대회 3등급 입상</div><div class="tl-desc">AI 융합 발명 교수학습모형 개발 — PBL 모형에 AI 협업 단계를 설계·삽입</div></div>
+    <div class="tl-year">2021~<br>2025</div><div class="tl-item reveal"><div class="tl-title">서울 오류중학교 기술 교사</div><div class="tl-desc">VR, AI, 피지컬 컴퓨팅 등 기술 융합 수업 설계 및 적용</div></div>
+  </div>
+</section>
+
+<div class="manifesto reveal">
+  <p class="manifesto-text">좋은 수업을 만드는 것에서 멈추지 않고,<br><em>왜 좋은 수업인지를</em><br><strong>설명할 수 있는 연구자</strong>가 되고 싶습니다.</p>
+  <p class="manifesto-author">— 김가현, AI 융합교육 석사과정</p>
+</div>
+
+<div class="footer">
+  <div class="footer-left">서울 여의도중학교 · 서울대학교 AI 융합교육</div>
+  <div class="footer-right">기술로 세상을 읽고, 교육으로 미래를 설계합니다</div>
+</div>
+
+<script>
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=-100,my=-100,rx=-100,ry=-100;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  spawnParticle(mx,my);
+});
+(function animRing(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
+document.querySelectorAll('.interest-card,.badge,.principle-item,.tl-item,.node-group').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));
+});
+
+const canvas=document.getElementById('particle-canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+const particles=[];
+const COLORS=['#c8400a','#1a4d8a','#8a8070','#c8bfaa'];
+function spawnParticle(x,y){
+  if(Math.random()>.3)return;
+  particles.push({x,y,vx:(Math.random()-.5)*1.6,vy:(Math.random()-.5)*1.6-.7,r:Math.random()*2.5+.8,alpha:.7+Math.random()*.3,color:COLORS[Math.floor(Math.random()*COLORS.length)],decay:.013+Math.random()*.014,shape:Math.random()>.55?'star':'circle'});
+}
+function drawStar(cx,cy,r,alpha,color){
+  ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.translate(cx,cy);ctx.rotate(Date.now()*.002);
+  ctx.beginPath();
+  for(let i=0;i<4;i++){ctx.lineTo(Math.cos(i*Math.PI/2)*r,Math.sin(i*Math.PI/2)*r);ctx.lineTo(Math.cos((i+.5)*Math.PI/2)*r*.4,Math.sin((i+.5)*Math.PI/2)*r*.4);}
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+(function animP(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.025;p.alpha-=p.decay;
+    if(p.alpha<=0){particles.splice(i,1);continue;}
+    if(p.shape==='star'){drawStar(p.x,p.y,p.r*1.5,p.alpha,p.color);}
+    else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.fill();}
+    ctx.globalAlpha=1;
+  }
+  requestAnimationFrame(animP);
+})();
+
+const bar=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{const pct=window.scrollY/(document.body.scrollHeight-window.innerHeight)*100;bar.style.width=pct+'%';});
+
+const plx1=document.getElementById('plx1'),plx2=document.getElementById('plx2'),plx3=document.getElementById('plx3');
+let ticking=false;
+window.addEventListener('scroll',()=>{
+  if(!ticking){requestAnimationFrame(()=>{const s=window.scrollY;plx1.style.transform=`translateY(${s*.18}px)`;plx2.style.transform=`translateY(${s*-.12}px)`;plx3.style.transform=`translateY(${s*.28}px)`;ticking=false;});ticking=true;}
+});
+
+const hero=document.getElementById('hero');
+hero.addEventListener('mousemove',e=>{
+  const rect=hero.getBoundingClientRect();
+  const cx=(e.clientX-rect.left-rect.width/2)/rect.width;
+  const cy=(e.clientY-rect.top-rect.height/2)/rect.height;
+  plx1.style.transform=`translate(${cx*28}px,${cy*28}px)`;
+  plx2.style.transform=`translate(${cx*-18}px,${cy*-18}px)`;
+  plx3.style.transform=`translate(${cx*38}px,${cy*38}px)`;
+});
+hero.addEventListener('mouseleave',()=>{plx1.style.transform='';plx2.style.transform='';plx3.style.transform='';});
+
+document.querySelectorAll('.node-group').forEach(g=>{
+  g.style.cursor='pointer';
+  g.addEventListener('mouseenter',function(){
+    const circ=this.querySelector('circle');
+    circ.style.transition='r .2s';circ.setAttribute('r','44');
+    const svgEl=document.getElementById('node-svg'),svgRect=svgEl.getBoundingClientRect();
+    const txt=this.querySelector('text');
+    const nx=parseFloat(txt.getAttribute('x')),ny=parseFloat(txt.getAttribute('y'));
+    const px=svgRect.left+nx*(svgRect.width/480),py=svgRect.top+ny*(svgRect.height/500);
+    for(let i=0;i<20;i++){setTimeout(()=>{particles.push({x:px,y:py,vx:(Math.random()-.5)*3.5,vy:(Math.random()-.5)*3.5,r:Math.random()*3+1,alpha:.9,color:COLORS[Math.floor(Math.random()*COLORS.length)],decay:.02,shape:Math.random()>.5?'star':'circle'});},i*12);}
+  });
+  g.addEventListener('mouseleave',function(){this.querySelector('circle').setAttribute('r','38');});
+});
+
+document.querySelectorAll('.interest-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const rect=card.getBoundingClientRect();
+    const cx=(e.clientX-rect.left)/rect.width-.5,cy=(e.clientY-rect.top)/rect.height-.5;
+    card.style.transform=`perspective(600px) rotateY(${cx*9}deg) rotateX(${-cy*7}deg) scale(1.02)`;
+    card.style.transition='transform .08s ease';
+  });
+  card.addEventListener('mouseleave',()=>{card.style.transform='perspective(600px) rotateY(0) rotateX(0) scale(1)';card.style.transition='transform .4s ease';});
+  card.addEventListener('click',e=>{
+    const r=document.createElement('span');r.className='ripple';
+    const rect=card.getBoundingClientRect();
+    r.style.left=(e.clientX-rect.left)+'px';r.style.top=(e.clientY-rect.top)+'px';
+    card.appendChild(r);setTimeout(()=>r.remove(),700);
+    for(let i=0;i<14;i++){particles.push({x:e.clientX,y:e.clientY,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4-1,r:Math.random()*3+1,alpha:.9,color:COLORS[Math.floor(Math.random()*COLORS.length)],decay:.022,shape:'star'});}
+  });
+});
+
+const revObs=new IntersectionObserver((entries)=>{entries.forEach((entry,i)=>{if(entry.isIntersecting)setTimeout(()=>entry.target.classList.add('visible'),i*75);});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+</script>
+</body>
+</html>
