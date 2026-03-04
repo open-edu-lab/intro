@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이가현 | AI 융합 교육</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --accent: #c8400a;
+    --accent2: #1a4d8a;
+    --grid: #e0d9cc;
+    --muted: #8a8070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, width 0.2s, height 0.2s;
+    mix-blend-mode: multiply;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--accent2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.3s, height 0.3s, opacity 0.3s;
+    opacity: 0.6;
+  }
+
+  /* Grid background */
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    z-index: 1;
+    padding: 60px;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .hero-left {
+    position: relative;
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-left: 2px solid var(--accent);
+    padding-left: 12px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero-name {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(48px, 6vw, 88px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero-name .accent { color: var(--accent); }
+  .hero-name .accent2 { color: var(--accent2); }
+
+  .hero-subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    margin-top: 20px;
+    line-height: 1.8;
+    font-weight: 300;
+    max-width: 420px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .badge:hover { background: var(--ink); color: var(--paper); }
+  .badge.accent-badge { border-color: var(--accent); color: var(--accent); }
+  .badge.accent-badge:hover { background: var(--accent); color: var(--paper); }
+  .badge.accent2-badge { border-color: var(--accent2); color: var(--accent2); }
+  .badge.accent2-badge:hover { background: var(--accent2); color: var(--paper); }
+
+  /* Hero right - visual node map */
+  .hero-right {
+    position: relative;
+    height: 500px;
+    opacity: 0;
+    animation: fadeIn 1.2s 1s forwards;
+  }
+
+  .node-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── SECTION WRAPPER ── */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 80px 60px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--grid);
+    max-width: 200px;
+  }
+
+  /* ── ABOUT STRIP ── */
+  .about-strip {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 64px 60px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 60px;
+    align-items: start;
+    z-index: 1;
+    position: relative;
+  }
+
+  .about-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .about-title span { color: var(--accent); }
+
+  .about-body {
+    font-size: 16px;
+    line-height: 2;
+    font-weight: 300;
+    color: #c8c0b0;
+  }
+  .about-body strong { color: var(--paper); font-weight: 500; }
+
+  /* ── INTEREST CARDS ── */
+  .interests {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--grid);
+    border: 1px solid var(--grid);
+  }
+
+  .interest-card {
+    background: var(--paper);
+    padding: 40px 36px;
+    transition: background 0.3s;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+  }
+  .interest-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 0;
+  }
+  .interest-card:hover::before { transform: scaleY(1); }
+  .interest-card:hover .card-num,
+  .interest-card:hover .card-title,
+  .interest-card:hover .card-desc { color: var(--paper); }
+  .interest-card:hover .card-accent { color: var(--accent); }
+
+  .card-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 24px;
+    position: relative; z-index: 1;
+    transition: color 0.3s;
+  }
+  .card-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    position: relative; z-index: 1;
+    transition: color 0.3s;
+  }
+  .card-accent {
+    color: var(--accent);
+    transition: color 0.3s;
+  }
+  .card-desc {
+    font-size: 13.5px;
+    line-height: 1.85;
+    color: var(--muted);
+    position: relative; z-index: 1;
+    transition: color 0.3s;
+  }
+  .interest-card:hover .card-desc { color: #c8c0b0; }
+
+  /* ── DESIGN PRINCIPLE ── */
+  .principle-row {
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .principle-item {
+    flex: 1;
+    padding: 48px 40px;
+    border-right: 1px solid var(--grid);
+    position: relative;
+  }
+  .principle-item:last-child { border-right: none; }
+
+  .principle-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .principle-heading {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .principle-text {
+    font-size: 13.5px;
+    line-height: 1.9;
+    color: var(--muted);
+  }
+
+  .red-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    margin-bottom: 0;
+  }
+
+  /* ── TEACHING MANIFESTO ── */
+  .manifesto {
+    background: var(--accent);
+    color: var(--paper);
+    padding: 80px 60px;
+    z-index: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .manifesto::before {
+    content: '"';
+    font-family: 'Noto Serif KR', serif;
+    font-size: 400px;
+    position: absolute;
+    right: 40px; top: -80px;
+    opacity: 0.07;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .manifesto-text {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(22px, 3vw, 38px);
+    line-height: 1.6;
+    font-weight: 400;
+    max-width: 800px;
+  }
+  .manifesto-text em { font-style: italic; opacity: 0.85; }
+  .manifesto-author {
+    margin-top: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 40px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--grid);
+    z-index: 1;
+    position: relative;
+  }
+  .footer-left {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .footer-right {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* scroll indicator */
+  .scroll-hint {
+    position: fixed;
+    bottom: 32px; right: 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    writing-mode: vertical-rl;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.5s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .scroll-hint::before {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: var(--muted);
+    animation: scrollLine 1.5s infinite;
+  }
+  @keyframes scrollLine {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    max-width: 800px;
+  }
+  .tl-year {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    padding-top: 4px;
+    font-weight: 700;
+  }
+  .tl-item {
+    padding: 0 0 36px 32px;
+    border-left: 1px solid var(--grid);
+    position: relative;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -4px; top: 8px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent2);
+  }
+  .tl-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .tl-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* Marquee */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--grid);
+    border-bottom: 1px solid var(--grid);
+    padding: 16px 0;
+    background: var(--ink);
+  }
+  .marquee-inner {
+    display: flex;
+    gap: 48px;
+    animation: marquee 20s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--paper);
+    letter-spacing: 0.15em;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  .marquee-item.hi { color: var(--accent); opacity: 1; }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 40px 32px; }
+    .hero-right { display: none; }
+    .about-strip { grid-template-columns: 1fr; padding: 48px 32px; gap: 32px; }
+    .interests { grid-template-columns: 1fr; }
+    .principle-row { flex-direction: column; }
+    section { padding: 60px 32px; }
+    .manifesto { padding: 60px 32px; }
+    .footer { padding: 32px; flex-direction: column; gap: 12px; text-align: center; }
+    .timeline { grid-template-columns: 120px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="scroll-hint" id="scrollHint">SCROLL</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">AI 융합 교육 연구자 · 중학교 기술 교사</div>
+    <h1 class="hero-name">
+      기술과 AI가<br>
+      <span class="accent">만나는</span><br>
+      <span class="accent2">교실</span>을<br>
+      설계합니다
+    </h1>
+    <p class="hero-subtitle">
+      서울 오류중학교 기술 교사이자<br>
+      서울대학교 AI 융합교육 대학원생,<br>
+      <strong>이가현</strong>입니다.
+    </p>
+    <div class="hero-badges">
+      <span class="badge accent-badge">AI·에듀테크 선도교사</span>
+      <span class="badge accent2-badge">전국기술가정교사회</span>
+      <span class="badge">발명교육</span>
+      <span class="badge">STEAM</span>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <svg class="node-svg" viewBox="0 0 480 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- connections -->
+      <line x1="240" y1="250" x2="100" y2="120" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="250" x2="380" y2="100" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="250" x2="60" y2="300" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="250" x2="420" y2="310" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="250" x2="140" y2="420" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="240" y1="250" x2="340" y2="430" stroke="#e0d9cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="100" y1="120" x2="380" y2="100" stroke="#e0d9cc" stroke-width="1" opacity="0.4"/>
+      <line x1="60" y1="300" x2="140" y2="420" stroke="#e0d9cc" stroke-width="1" opacity="0.4"/>
+      <line x1="420" y1="310" x2="340" y2="430" stroke="#e0d9cc" stroke-width="1" opacity="0.4"/>
+
+      <!-- center node -->
+      <circle cx="240" cy="250" r="52" fill="#0d0d0d"/>
+      <circle cx="240" cy="250" r="48" fill="#0d0d0d" stroke="#c8400a" stroke-width="1.5"/>
+      <text x="240" y="245" text-anchor="middle" fill="#f5f0e8" font-family="Noto Serif KR" font-size="13" font-weight="700">AI 융합</text>
+      <text x="240" y="262" text-anchor="middle" fill="#c8400a" font-family="Noto Serif KR" font-size="11">교육 설계</text>
+
+      <!-- satellite nodes -->
+      <circle cx="100" cy="120" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/>
+      <text x="100" y="116" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">발명</text>
+      <text x="100" y="131" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">교육</text>
+
+      <circle cx="380" cy="100" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/>
+      <text x="380" y="96" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">생성형</text>
+      <text x="380" y="111" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">AI 활용</text>
+
+      <circle cx="60" cy="300" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/>
+      <text x="60" y="296" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">STEAM</text>
+      <text x="60" y="311" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="10">바이오미미크리</text>
+
+      <circle cx="420" cy="310" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/>
+      <text x="420" y="306" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">3D 모델링</text>
+      <text x="420" y="321" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="10">메이커 교육</text>
+
+      <circle cx="140" cy="420" r="38" fill="#f5f0e8" stroke="#1a4d8a" stroke-width="1.5"/>
+      <text x="140" y="416" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">데이터</text>
+      <text x="140" y="431" text-anchor="middle" fill="#1a4d8a" font-family="Noto Sans KR" font-size="10">시각화</text>
+
+      <circle cx="340" cy="430" r="38" fill="#f5f0e8" stroke="#c8400a" stroke-width="1.5"/>
+      <text x="340" y="426" text-anchor="middle" fill="#0d0d0d" font-family="Noto Sans KR" font-size="11" font-weight="500">특허·지식</text>
+      <text x="340" y="441" text-anchor="middle" fill="#c8400a" font-family="Noto Sans KR" font-size="10">재산권</text>
+    </svg>
+  </div>
+</section>
+
+<!-- marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-inner">
+    <span class="marquee-item hi">AI 융합교육</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">발명 교육</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item hi">생성형 AI</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">STEAM 설계</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">바이오미미크리</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item hi">3D 모델링</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">에듀테크</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">중학교 기술</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item hi">AI 융합교육</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">발명 교육</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item hi">생성형 AI</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">STEAM 설계</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">바이오미미크리</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item hi">3D 모델링</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">에듀테크</span>
+    <span class="marquee-item">·</span>
+    <span class="marquee-item">중학교 기술</span>
+  </div>
+</div>
+
+<!-- ── ABOUT ── -->
+<div class="about-strip">
+  <div>
+    <h2 class="about-title">저는<br><span>어떤</span><br>교사인가요?</h2>
+  </div>
+  <div>
+    <p class="about-body">
+      중학교 기술 교사로서 저의 교실은 단순히 기술을 <strong>배우는 곳</strong>이 아닙니다.<br>
+      학생들이 <strong>AI를 도구로 삼아 문제를 발견하고, 아이디어를 구체화하며, 세상에 기여하는 경험</strong>을 설계하는 공간입니다.<br><br>
+      서울대학교 AI 융합교육 대학원에서 연구를 이어가며, AI·에듀테크 선도교사로서<br>
+      교사와 학생 모두가 <strong>기술의 주체</strong>가 되는 수업 생태계를 만들어 가고 있습니다.
+    </p>
+  </div>
+</div>
+
+<!-- ── INTERESTS ── -->
+<section>
+  <div class="section-label">관심 영역 · 수업 설계 주제</div>
+
+  <div class="interests">
+    <div class="interest-card">
+      <div class="card-num">01 / 발명 교육</div>
+      <h3 class="card-title">AI 스케치 증강<br><span class="card-accent">특허 검색 연계</span></h3>
+      <p class="card-desc">KIPRIS API와 생성형 AI를 결합한 발명 교육 웹앱 개발. 아이디어 스케치 → AI 이미지 생성 → 선행 특허 검색까지 한 흐름에서 경험하는 발명 프로세스 수업.</p>
+    </div>
+    <div class="interest-card">
+      <div class="card-num">02 / STEAM</div>
+      <h3 class="card-title">바이오미미크리<br><span class="card-accent">자연 모방 설계</span></h3>
+      <p class="card-desc">생물의 구조와 원리에서 기술적 해법을 찾는 바이오미미크리 기반 STEAM 프로그램. 과학·기술·예술을 교차하는 문제 해결 수업 설계.</p>
+    </div>
+    <div class="interest-card">
+      <div class="card-num">03 / 3D 모델링</div>
+      <h3 class="card-title">메이커 교육<br><span class="card-accent">AI 3D 생성</span></h3>
+      <p class="card-desc">Meshy AI 등 생성형 3D 도구를 활용한 메이커 교육 콘텐츠 개발. 아이디어에서 프로토타입까지 빠르게 구현하는 설계 사고 수업.</p>
+    </div>
+    <div class="interest-card">
+      <div class="card-num">04 / 데이터 리터러시</div>
+      <h3 class="card-title">R · Quarto<br><span class="card-accent">데이터 시각화</span></h3>
+      <p class="card-desc">한국 인구 구조, 고령화 트렌드 등 실제 데이터를 분석·시각화하는 대시보드 수업. 학생이 직접 사회 문제를 데이터로 읽는 경험 설계.</p>
+    </div>
+    <div class="interest-card">
+      <div class="card-num">05 / 생성형 AI</div>
+      <h3 class="card-title">AI 리터러시<br><span class="card-accent">교육적 활용</span></h3>
+      <p class="card-desc">ChatGPT·Claude 등 생성형 AI를 수업 도구로 통합하는 방법론 연구. AI 활용의 윤리적 측면과 비판적 사고를 함께 다루는 수업 설계.</p>
+    </div>
+    <div class="interest-card">
+      <div class="card-num">06 / 지식재산</div>
+      <h3 class="card-title">특허·저작권<br><span class="card-accent">IP 교육</span></h3>
+      <p class="card-desc">중학생 수준에서 이해할 수 있는 지식재산권 교육 설계. 자신의 아이디어를 보호하고 다른 사람의 창작을 존중하는 시민 의식 함양.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRINCIPLES ── -->
+<div class="red-bar"></div>
+<section style="background: var(--ink); color: var(--paper); padding: 64px 60px;">
+  <div class="section-label" style="color: #5a5040;">수업 설계 원칙</div>
+  <div class="principle-row">
+    <div class="principle-item" style="border-color: #2a2820;">
+      <span class="principle-icon">🔍</span>
+      <h3 class="principle-heading">문제 발견 우선</h3>
+      <p class="principle-text" style="color: #8a8070;">정답을 주는 수업보다 <br>학생이 스스로 문제를 <br>발견하는 수업을 설계합니다.</p>
+    </div>
+    <div class="principle-item" style="border-color: #2a2820;">
+      <span class="principle-icon">🔗</span>
+      <h3 class="principle-heading">교과 간 연결</h3>
+      <p class="principle-text" style="color: #8a8070;">기술·과학·수학·예술이 <br>분리되지 않고 하나의 <br>프로젝트에서 만납니다.</p>
+    </div>
+    <div class="principle-item" style="border-color: #2a2820;">
+      <span class="principle-icon">🤖</span>
+      <h3 class="principle-heading">AI는 도구, 사람이 주체</h3>
+      <p class="principle-text" style="color: #8a8070;">AI를 활용하되, 학생의 <br>사고와 판단이 중심이 되는 <br>수업 구조를 만듭니다.</p>
+    </div>
+    <div class="principle-item" style="border-color: transparent;">
+      <span class="principle-icon">📐</span>
+      <h3 class="principle-heading">만들기로 증명</h3>
+      <p class="principle-text" style="color: #8a8070;">배움의 결과는 산출물로 <br>나타납니다. 프로토타입, <br>발표, 전시로 완성됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIMELINE ── -->
+<section>
+  <div class="section-label">커리어 타임라인</div>
+  <div class="timeline">
+    <div class="tl-year">현재</div>
+    <div class="tl-item">
+      <div class="tl-title">서울 오류중학교 기술 교사 · AI·에듀테크 선도교사</div>
+      <div class="tl-desc">AI 융합 발명교육 수업 설계 및 운영, 교사 연수 프로그램 진행</div>
+    </div>
+    <div class="tl-year">진행중</div>
+    <div class="tl-item">
+      <div class="tl-title">서울대학교 AI 융합교육 대학원 재학</div>
+      <div class="tl-desc">생성형 AI 기반 기술 교육 연구, 학술 발표 준비</div>
+    </div>
+    <div class="tl-year">2025~</div>
+    <div class="tl-item">
+      <div class="tl-title">전국기술가정교사회 활동</div>
+      <div class="tl-desc">교사 전문성 개발 및 교육과정 연구 참여</div>
+    </div>
+    <div class="tl-year">지속</div>
+    <div class="tl-item">
+      <div class="tl-title">에듀테크 도구 개발 · 적용</div>
+      <div class="tl-desc">KIPRIS API, Meshy AI, OpenAI 활용 교육용 웹앱 개발</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MANIFESTO ── -->
+<div class="manifesto">
+  <p class="manifesto-text">
+    기술 교육의 미래는<br>
+    <em>AI가 무엇인지 아는 것</em>을 넘어,<br>
+    AI와 함께 <strong>무엇을 만들 수 있는지</strong><br>
+    경험하는 데 있습니다.
+  </p>
+  <p class="manifesto-author">— 이가현, AI 융합교육 연구자</p>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div class="footer-left">
+    서울 오류중학교 · 서울대학교 AI 융합교육<br>
+    AI·에듀테크 선도교사 2025
+  </div>
+  <div class="footer-right">
+    기술로 세상을 읽고, 교육으로 미래를 설계합니다
+  </div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, button, .interest-card, .badge').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '20px'; cursor.style.height = '20px';
+      ring.style.width = '56px'; ring.style.height = '56px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '12px'; cursor.style.height = '12px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+    });
+  });
+
+  // Scroll hint fade
+  const hint = document.getElementById('scrollHint');
+  window.addEventListener('scroll', () => {
+    hint.style.opacity = window.scrollY > 100 ? '0' : '1';
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.interest-card, .principle-item, .tl-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
